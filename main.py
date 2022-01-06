@@ -4,52 +4,70 @@ import numpy as np
 import lib
 import random
 
+# Liczba miesięcy
+monthCount = 3
 
-k=3
-wykres=[lib.random_chart(k),lib.random_chart(k),lib.random_chart(k)]
+# Wygenerowane wykresy akcji
+stock_charts = [lib.random_chart(monthCount),lib.random_chart(monthCount),lib.random_chart(monthCount)]
+
 #jeszcze kara maks jesli kupimy cos za wiecej niz mamy
-liczba_mie=1 # liczba miesiecy
 kar1=1 #kara 1
 kar2=1 # kara 2
-num=8 # liczba rozwiązań poczatkowych
+
+num = 8 # liczba rozwiązań poczatkowych
 Nmax = 10000  # maksymalna liczba iteracji
-p=[]#najlepsze rozwiazania cząsteczek
-g=lib.create_random_solution(wykres) # najlepsze rozwiązanie globalne
-x=[] #rój
-v=[]
-portf=100000
+
+p = [] #najlepsze rozwiazania cząsteczek
+x = [] #rój pozycja
+v = [] #predkosc
+
+globalSolution = lib.create_random_solution(stock_charts) # najlepsze rozwiązanie globalne
+initialBudget = 100000
+
 for i in range(num):
-    przy=lib.create_random_solution(wykres)
-    while lib.spr(przy, portf) == False or lib.check_time(przy,liczba_mie)==False:
-        przy = lib.create_random_solution(wykres)
+    przy = lib.create_random_solution(stock_charts)
+
+    while lib.spr(przy, initialBudget) == False or lib.check_timeLimit(przy,monthCount) == False:
+        przy = lib.create_random_solution(stock_charts)
     p.append(0)
     x.append(przy)
     p[i] = x[i]
-    if lib.funkcja_celu(p[i],liczba_mie,kar1,kar2,portf) > lib.funkcja_celu(g,liczba_mie,kar1,kar2,portf):
-        g = p[i]
-    v.append(1) #inicjalizacja prędkości cząsteczki
-    iter=0
-print(g)
-while iter<Nmax:
-    for i in range(num):
-        r1=random.randint(0,1)
-        r2=random.randint(0,1)
-        w=1 #– współczynnik inercji ruchu cząstki,
-        c1=1 #– stała dodatnia, tzw.wskaźnik samooceny,
-        c2=1 #– stała dodatnia, wskaźnik społecznościowy(zaufanie położeniu sąsiadów),
-        v[i] = w * v[i - 1] + c1 * r1 * (p[i - 1] - x[i - 1]) + c2 * r2 * (g - x[i - 1]) #aktualizacja prędkosci cząsteczek
-        x[i]=x[i-1]+v[i] #aktualizacja pozycji cząsteczek
-        if lib.funkcja_celu(x[i], liczba_mie, kar1, kar2,portf) > lib.funkcja_celu(p[i], liczba_mie, kar1, kar2,portf):
-            p[i]=x[i] #aktualizacja najlepszego rozwiązania cząsteczki
 
-            if lib.funkcja_celu(p[i],liczba_mie,kar1,kar2,portf) > lib.funkcja_celu(g,liczba_mie,kar1,kar2,portf):
-                g=p[i]# aktualizacja najlepszego rozwiązania roju
-                print(lib.funkcja_celu(p[i], liczba_mie, kar1, kar2, portf))
-    iter=iter+1
+    if lib.cost_function(p[i], monthCount, kar1, kar2, initialBudget) > lib.cost_function(globalSolution, monthCount, kar1, kar2, initialBudget):
+        globalSolution = p[i]
+
+    v.append(1) #inicjalizacja prędkości cząsteczki
+    iter = 0
+
+print(globalSolution)
+
+while iter < Nmax:
+    for i in range(num):
+
+        r1 = random.randint(0,1)
+        r2 = random.randint(0,1)
+
+        w = 1 #– współczynnik inercji ruchu cząstki,
+        c1 = 1 #– stała dodatnia, tzw.wskaźnik samooceny,
+        c2 = 1 #– stała dodatnia, wskaźnik społecznościowy(zaufanie położeniu sąsiadów)
+
+        v[i] = w * v[i - 1] + c1 * r1 * (p[i - 1] - x[i - 1]) + c2 * r2 * (globalSolution - x[i - 1]) #aktualizacja prędkosci cząsteczek
+        x[i] = x[i - 1] + v[i] #aktualizacja pozycji cząsteczek
+
+        if lib.cost_function(x[i], monthCount, kar1, kar2, initialBudget) > lib.cost_function(p[i], monthCount, kar1, kar2, initialBudget):
+            p[i] = x[i] #aktualizacja najlepszego rozwiązania cząsteczki
+
+            if lib.cost_function(p[i],monthCount,kar1,kar2, initialBudget) > lib.cost_function(globalSolution, monthCount, kar1, kar2, initialBudget):
+                globalSolution = p[i] # aktualizacja najlepszego rozwiązania roju
+
+                print(lib.cost_function(p[i], monthCount, kar1, kar2, initialBudget))
+    iter += 1
     #print(iter)
 
-print(g)
-print(lib.funkcja_celu(g, liczba_mie, kar1, kar2,portf))
-print(lib.spr(g,portf))
-print(lib.czy_na_poczatku_sprzedajemy(g))
-print(lib.check_time(g, liczba_mie))
+
+
+print(globalSolution)
+print(lib.cost_function(globalSolution, monthCount, kar1, kar2, initialBudget))
+print(lib.spr(globalSolution, initialBudget))
+print(lib.check_if_selling_empty_stock(globalSolution))
+print(lib.check_timeLimit(globalSolution, monthCount))
