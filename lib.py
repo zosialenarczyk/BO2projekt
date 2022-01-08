@@ -42,12 +42,6 @@ class aktywo_w_portfelu:
     def get_stockCount(self):
         return self.stockCount
 
-    # po co ta funkcja?
-    def check(self, n: float):
-        if self.stockCount > n:
-            return True
-        else:
-            return False
 
 
 def pick_random_percentage() -> float:
@@ -83,9 +77,13 @@ def create_random_solution(stockCharts):
     return buf
 
 
+def penalty_func(penaltyCount: int, monthCount: int) -> float:
+    return 1 - (0.1*penaltyCount)
+
+
 def check_timeLimit(solution: np.ndarray, number: int) -> bool:
     '''
-    Funkcja sprawdza, czy został spełnione ograniczenie czasowe
+    Funkcja sprawdza, czy zostało spełnione ograniczenie czasowe
     '''
     
     m, n = np.shape(solution)
@@ -104,6 +102,41 @@ def check_timeLimit(solution: np.ndarray, number: int) -> bool:
     return True
 
 
+def check_timeLimit2(solution: np.ndarray, monthBreak: int) -> int:
+    '''
+    Funkcja liczy, ile razy zostało niespełnione ograniczenie czasowe
+    '''
+
+    m, n = np.shape(solution)
+    penaltyCount: int = 0
+    elem_zero: int = 0
+    elem_notZero: int = 0
+
+    for i in range(n):
+        for j in range(m):
+            if solution[j][i] == 0 and elem_zero == monthBreak - 1 and elem_notZero == 1:
+                'Dokładnie odpowiednia przerwa, kolejne zera z rzedu nie będą miały znaczenia'
+                elem_notZero = 0
+            
+            elif solution[j][i] == 0 and elem_notZero == 0:
+                'Albo do tej pory byly same zera, albo przerwa jest dluzsza niz minimalna'
+                elem_zero += 1 
+
+            elif solution[j][i] == 0 and elem_zero < monthBreak - 1 and elem_notZero == 1:
+                'zero po jednym niezerowym elemencie (przerwa jeszcze nie osiagnela wymaganej dlugosci)'
+                elem_zero += 1
+
+            elif solution[j][i] != 0 and elem_notZero == 0:
+                'pierwszy niezerowy element po przerwie lub po niespelnieniu warunku'
+                elem_notZero += 1
+
+            elif solution[j][i] != 0 and elem_notZero == 1:
+                'warunek niespełniony'
+                penaltyCount += 1
+                elem_notZero = 0
+    
+    return penaltyCount
+
 
 def check_if_selling_empty_stock(A: np.ndarray) -> bool:
     '''
@@ -121,6 +154,15 @@ def check_if_selling_empty_stock(A: np.ndarray) -> bool:
         return True
 
 
+def check_if_selling_empty_stock2(A: np.ndarray) -> bool:
+
+    for stock in A.transpose():
+        i: int = 0
+        if stock[i] >= 0:
+            return True
+    return False
+        
+
 def spr(solutionMatrix: np.ndarray, initalBudget: float) -> bool:
     '''
     Funkcja sprawdza, czy nie zostało wydane więcej pieniędzy, niż było w budżecie
@@ -132,14 +174,14 @@ def spr(solutionMatrix: np.ndarray, initalBudget: float) -> bool:
     currentBudget: float = initalBudget
 
     for month in solutionMatrix:
-        for stock in month:
-            currentBudget = currentBudget - stock
+        for stockInMoney in month:
+            currentBudget = currentBudget + stockInMoney
         if currentBudget < 0:
             return False
     return True
 
 
-def cost_function(solutionMatrix: np.ndarray, monthCount: int) -> float:
+def cost_function(solutionMatrix: np.ndarray, monthBreak: int, monthCount: int, initalBudget: int) -> float:
 
     suma: float = 0
     n, m = np.shape(solutionMatrix)
@@ -148,19 +190,16 @@ def cost_function(solutionMatrix: np.ndarray, monthCount: int) -> float:
         for j in range(m):
             suma += solutionMatrix[i][j]
 
-    # Do zmiany liczenie kary!!!
-    "liczymy karę dla funkcji"
-    kara=1
-    #if spr(A,portf)==False:
-    #    return 0
+    penaltyCount = check_timeLimit2(solutionMatrix, monthBreak)
+    penaltyCoefficient = penalty_func(penaltyCount, monthCount)
 
-    if check_timeLimit(solutionMatrix, monthCount) == False:
-        print('Nie spełnione ograniczenie czasowe')
+    if check_if_selling_empty_stock2(solutionMatrix) == False:
+        #print('Sprzedaż aktywa, którego nie posiadamy')
+        return 0
+    
+    if spr(solutionMatrix, initalBudget) == False:
+        #print('Wydano więcej pieniędzy niż było w budżecie')
         return 0
 
-    if check_if_selling_empty_stock(solutionMatrix) == False:
-        print('Sprzedaż aktywa, którego nie posiadamy')
-        return 0
-
-    return suma*kara
+    return suma*penaltyCoefficient
 
