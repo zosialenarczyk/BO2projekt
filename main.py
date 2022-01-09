@@ -5,24 +5,29 @@ from numpy.lib.nanfunctions import nanmax
 import lib
 import random
 
-def main():
+
+def main(monthCount, chartCount, monthBreak, num, Nmax, initialBudget):
 
     # Liczba miesięcy
-    monthCount = 3
+    #monthCount = 3
+
+    # Liczba wykresów (liczba aktyw)
+    #chartCount = 3
 
     # Wygenerowane wykresy akcji
-    stock_charts = [lib.random_chart(monthCount),lib.random_chart(monthCount),lib.random_chart(monthCount)]
+    #stock_charts = [lib.random_chart(monthCount),lib.random_chart(monthCount),lib.random_chart(monthCount)]
+    stock_charts = [lib.random_chart(monthCount) for i in range(chartCount)]
 
-    monthBreak = 1
-    num = 8 # liczba rozwiązań poczatkowych
-    Nmax = 1000  # maksymalna liczba iteracji
+    #monthBreak = 1
+    #num = 8 # liczba rozwiązań poczatkowych
+    #Nmax = 1000  # maksymalna liczba iteracji
 
     p = [] #najlepsze rozwiazania cząsteczek
     x = [] #rój pozycja
     v = [] #predkosc
 
     globalSolution = lib.create_random_solution(stock_charts) # najlepsze rozwiązanie globalne
-    initialBudget = 100000
+    #initialBudget = 100000
 
     for i in range(num):
         przy = lib.create_random_solution(stock_charts)
@@ -64,7 +69,7 @@ def main():
         iter += 1
         #print(iter)
 
-
+    return globalSolution, lib.cost_function(globalSolution, monthBreak, monthCount, initialBudget)
 
     print(f"ROZWIĄZANIE KOŃCOWE: \n{globalSolution}")
     print(f'FUNKCJA CELU = {lib.cost_function(globalSolution, monthBreak, monthCount, initialBudget)}')
@@ -73,5 +78,5 @@ def main():
     print(f'ILE RAZY ZOSTAŁO NIESPEŁNIONE OGRANICZENIE CZASOWE: {lib.check_timeLimit2(globalSolution, monthBreak)}')
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
