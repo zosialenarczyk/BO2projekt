@@ -138,29 +138,29 @@ def check_timeLimit2(solution: np.ndarray, monthBreak: int) -> int:
     return penaltyCount
 
 
-def check_if_selling_empty_stock(A: np.ndarray) -> bool:
+def check_if_selling_empty_stock2(A: np.ndarray) -> bool:
     '''
     Funkcja sprawdza, czy na początku nie sprzedajemy aktywa, którego nie mamy
     '''
 
-    for stock in A:
+    for stock in A.transpose():
         i = 0
         while((stock[i] == 0) and (i < np.size(stock) - 1)):
             i = i + 1
 
-        if stock[i] < 0:
+        if stock[i] > 0:
             return False
     else:
         return True
 
 
-def check_if_selling_empty_stock2(A: np.ndarray) -> bool:
+def check_if_selling_empty_stock(A: np.ndarray) -> bool:
 
     for stock in A.transpose():
         i: int = 0
-        if stock[i] >= 0:
-            return True
-    return False
+        if stock[i] <= 0:
+            return False
+    return True
         
 
 def spr(solutionMatrix: np.ndarray, initalBudget: float) -> bool:
@@ -170,12 +170,10 @@ def spr(solutionMatrix: np.ndarray, initalBudget: float) -> bool:
     False - budżet został przekroczony
     '''
 
-    solutionMatrix = np.transpose(solutionMatrix)
     currentBudget: float = initalBudget
 
     for month in solutionMatrix:
-        for stockInMoney in month:
-            currentBudget = currentBudget + stockInMoney
+        currentBudget = currentBudget + sum(month)
         if currentBudget < 0:
             return False
     return True
