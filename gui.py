@@ -5,24 +5,54 @@ import sys
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIntValidator
 import main
+import matplotlib
+matplotlib.use('Qt5Agg')
+import matplotlib.pyplot as plt
+
+# monthCount: int = 0
+# chartCount: int = 0
+# monthBreak: int = 0
+# num: int = 0
+# Nmax: int = 0
+# initialBudget: int = 0
 
 class SecondWindow(QWidget):
-    def __init__(self):
+    def __init__(self, monthCount, chartCount, monthBreak, num, Nmax, initialBudget):
         super(SecondWindow, self).__init__()
-        # self.monthCount = monthCount
-        # self.chartCount = chartCount
-        # self.montBreak = monthBreak
-        # self.num = num
-        # self.Nmax = Nmax
-        # self.initialBudget = initialBudget
+
+        self.monthCount = monthCount
+        self.chartCount = chartCount
+        self.monthBreak = monthBreak
+        self.num = num
+        self.Nmax = Nmax
+        self.initialBudget = initialBudget
 
         self.setGeometry(300, 100, 700, 700)
         self.setWindowTitle('ALGORYTM PSO - ROZWIĄZANIE')
-        
 
-    def initUI(self):
-        self.b = QPushButton(self)
-        self.b.setText('abcd')
+        # self.b = QPushButton(self)
+        # self.b.setText('abcd')
+
+        globalSolution, cost_function, startSolution, costPoints = main.main(monthCount, chartCount, monthBreak, num, Nmax, initialBudget)
+
+        self.label1 = QLabel(self)
+        self.label1.setText(f'Funkcja celu: {cost_function}')
+        self.label1.move(75, 75)
+        self.label1.adjustSize()
+
+        self.label2 = QLabel(self)
+        self.label2.setText(f"ROZWIĄZANIE POCZĄTKOWE: \n{startSolution}")
+        self.label2.move(75, 100)
+        self.label2.adjustSize()
+
+        self.label3 = QLabel(self)
+        self.label3.setText(f"ROZWIĄZANIE KOŃCOWE: \n{globalSolution}")
+        self.label3.move(75, 200)
+        self.label3.adjustSize()
+
+        # self.fig = plt.figure.Figure(figsize=(5,3))
+        # self.plot(costPoints)
+
 
 class MyWindow(QMainWindow):
     def __init__(self):
@@ -50,8 +80,7 @@ class MyWindow(QMainWindow):
         self.textbox1 = QLineEdit(self)
         self.textbox1.move(75, 70)
         self.textbox1.setValidator(QIntValidator())
-        monthCount = self.textbox1.editingFinished.connect(self.input1)
-
+        self.textbox1.editingFinished.connect(self.input1)
 
         # liczba aktyw
         self.label2 = QLabel(self)
@@ -62,7 +91,7 @@ class MyWindow(QMainWindow):
         self.textbox2 = QLineEdit(self)
         self.textbox2.move(75, 120)
         self.textbox2.setValidator(QIntValidator())
-        chartCount = self.textbox2.editingFinished.connect(self.input2)
+        self.textbox2.editingFinished.connect(self.input2)
         
         # Ograniczenie czasowe
         self.label3 = QLabel(self)
@@ -73,7 +102,7 @@ class MyWindow(QMainWindow):
         self.textbox3 = QLineEdit(self)
         self.textbox3.move(75, 170)
         self.textbox3.setValidator(QIntValidator())
-        monthBreak = self.textbox3.editingFinished.connect(self.input3)
+        self.textbox3.editingFinished.connect(self.input3)
 
         # Liczba rozw poczatkowych
         self.label4 = QLabel(self)
@@ -84,7 +113,7 @@ class MyWindow(QMainWindow):
         self.textbox4 = QLineEdit(self)
         self.textbox4.move(75, 220)
         self.textbox4.setValidator(QIntValidator())
-        num = self.textbox4.editingFinished.connect(self.input4)
+        self.textbox4.editingFinished.connect(self.input4)
 
         # Maksymalna liczba iteracji
         self.label5 = QLabel(self)
@@ -95,7 +124,7 @@ class MyWindow(QMainWindow):
         self.textbox5 = QLineEdit(self)
         self.textbox5.move(75, 270)
         self.textbox5.setValidator(QIntValidator())
-        Nmax = self.textbox5.editingFinished.connect(self.input5)
+        self.textbox5.editingFinished.connect(self.input5)
 
         # Budzet poczatkowy
         self.label6 = QLabel(self)
@@ -106,7 +135,7 @@ class MyWindow(QMainWindow):
         self.textbox6 = QLineEdit(self)
         self.textbox6.move(75, 320)
         self.textbox6.setValidator(QIntValidator())
-        initialBudget = self.textbox6.editingFinished.connect(self.input6)
+        self.textbox6.editingFinished.connect(self.input6)
 
         # values = [monthCount, chartCount, monthBreak, num, Nmax, initialBudget]
 
@@ -126,7 +155,7 @@ class MyWindow(QMainWindow):
 
     def show_newWindow(self):
         if self.w is None:
-            self.w = SecondWindow()
+            self.w = SecondWindow(self.monthCount, self.chartCount, self.monthBreak, self.num, self.Nmax, self.initialBudget)
             self.w.show()
 
         else:
@@ -138,27 +167,27 @@ class MyWindow(QMainWindow):
     
     def input1(self):
         #main.monthCount = self.textbox1.text()
-        return self.textbox1.text()
+        self.monthCount = int(self.textbox1.text())
     
     def input2(self):
         #main.chartCount = self.textbox2.text()
-        return self.textbox2.text()
+        self.chartCount =  int(self.textbox2.text())
 
     def input3(self):
         # main.monthBreak = self.textbox3.text()
-        return self.textbox3.text()
+        self.monthBreak =  int(self.textbox3.text())
     
     def input4(self):
         # main.num = self.textbox4.text()
-        return self.textbox4.text()
+        self.num =  int(self.textbox4.text())
     
     def input5(self):
         # main.Nmax = self.textbox5.text()
-        return self.textbox5.text()
+        self.Nmax =  int(self.textbox5.text())
     
     def input6(self):
         # main.initialBudget = self.textbox6.text()
-        return self.textbox6.text()
+        self.initialBudget =  int(self.textbox6.text())
 
     #def startButton_clicked(self, val1, val2, val3, val4, val5, val6):
     #     if type(val1) == int and type(val2) == int and type(monthBreak) == int and\

@@ -29,6 +29,8 @@ def main(monthCount, chartCount, monthBreak, num, Nmax, initialBudget):
     globalSolution = lib.create_random_solution(stock_charts) # najlepsze rozwiązanie globalne
     #initialBudget = 100000
 
+    costPoints = []
+
     for i in range(num):
         przy = lib.create_random_solution(stock_charts)
 
@@ -45,6 +47,7 @@ def main(monthCount, chartCount, monthBreak, num, Nmax, initialBudget):
         iter = 0
 
     print(f"ROZWIĄZANIE POCZĄTKOWE: \n{globalSolution}")
+    startSolution = globalSolution
 
     while iter < Nmax:
         for i in range(num):
@@ -65,17 +68,19 @@ def main(monthCount, chartCount, monthBreak, num, Nmax, initialBudget):
                 if lib.cost_function(p[i],monthBreak, monthCount, initialBudget) > lib.cost_function(globalSolution, monthBreak, monthCount, initialBudget):
                     globalSolution = p[i] # aktualizacja najlepszego rozwiązania roju
 
+                    costPoints.append(lib.cost_function(p[i], monthBreak, Nmax, initialBudget))
                     #print(lib.cost_function(p[i], monthBreak, Nmax, initialBudget))
         iter += 1
         #print(iter)
-
-    return globalSolution, lib.cost_function(globalSolution, monthBreak, monthCount, initialBudget)
 
     print(f"ROZWIĄZANIE KOŃCOWE: \n{globalSolution}")
     print(f'FUNKCJA CELU = {lib.cost_function(globalSolution, monthBreak, monthCount, initialBudget)}')
     print(f'CZY ZMIEŚCILIŚMY SIĘ W BUDŻECIE: {lib.spr(globalSolution, initialBudget)}')
     print(f'CZY NA POCZĄTKU SPRZEDALIŚMY AKTYWO, KTÓRE POSIADALIŚMY: {lib.check_if_selling_empty_stock2(globalSolution)}')
     print(f'ILE RAZY ZOSTAŁO NIESPEŁNIONE OGRANICZENIE CZASOWE: {lib.check_timeLimit2(globalSolution, monthBreak)}')
+
+    return globalSolution, lib.cost_function(globalSolution, monthBreak, monthCount, initialBudget), startSolution, costPoints
+
 
 
 # if __name__ == "__main__":
