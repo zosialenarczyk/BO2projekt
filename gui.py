@@ -1,24 +1,38 @@
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import QApplication, QLineEdit, QMainWindow, QPushButton, QLabel, QWidget
 import sys
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIntValidator
+from PyQt5.QtGui import QDoubleValidator, QIntValidator
 import main
+import numpy as np
 import matplotlib
 matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-# monthCount: int = 0
-# chartCount: int = 0
-# monthBreak: int = 0
-# num: int = 0
-# Nmax: int = 0
-# initialBudget: int = 0
+
+class Canvas(FigureCanvas):
+    def __init__(self, costPoints, Nmax):
+        fig, self.ax = plt.subplots()
+        self.costPoints = costPoints
+        self.Nmax = Nmax
+
+        super().__init__(fig)
+        self.setGeometry(1100, 100, 800, 500)
+        self.setWindowTitle('FUNKCJA CELU')
+        x: np.ndarray = np.arange(self.Nmax)
+        
+        self.ax.plot(x, self.costPoints)
+        self.ax.set(xlabel='Iteracje', ylabel='Wartość funkcji', title='Funkcja celu')
+        self.ax.grid()
+
 
 class SecondWindow(QWidget):
-    def __init__(self, monthCount, chartCount, monthBreak, num, Nmax, initialBudget):
+    def __init__(self, monthCount, chartCount, monthBreak, num, Nmax, initialBudget, fraction):
         super(SecondWindow, self).__init__()
+
+        self.w = None
 
         self.monthCount = monthCount
         self.chartCount = chartCount
@@ -26,38 +40,49 @@ class SecondWindow(QWidget):
         self.num = num
         self.Nmax = Nmax
         self.initialBudget = initialBudget
+        self.fraction = fraction
 
-        self.setGeometry(300, 100, 700, 700)
+        self.setGeometry(700, 100, 400, 500)
         self.setWindowTitle('ALGORYTM PSO - ROZWIĄZANIE')
 
-        # self.b = QPushButton(self)
-        # self.b.setText('abcd')
-
-        globalSolution, cost_function, startSolution, costPoints = main.main(monthCount, chartCount, monthBreak, num, Nmax, initialBudget)
+        self.globalSolution, self.cost_function, self.startSolution, self.costPoints = main.main(monthCount, chartCount, monthBreak, num, Nmax, initialBudget, fraction)
 
         self.label1 = QLabel(self)
-        self.label1.setText(f'Funkcja celu: {cost_function}')
+        self.label1.setText(f'Funkcja celu: {self.cost_function}')
         self.label1.move(75, 75)
         self.label1.adjustSize()
 
         self.label2 = QLabel(self)
-        self.label2.setText(f"ROZWIĄZANIE POCZĄTKOWE: \n{startSolution}")
-        self.label2.move(75, 100)
+        self.label2.setText(f"ROZWIĄZANIE POCZĄTKOWE: \n\n{self.startSolution}")
+        self.label2.move(75, 120)
         self.label2.adjustSize()
 
         self.label3 = QLabel(self)
-        self.label3.setText(f"ROZWIĄZANIE KOŃCOWE: \n{globalSolution}")
-        self.label3.move(75, 200)
+        self.label3.setText(f"ROZWIĄZANIE KOŃCOWE: \n\n{self.globalSolution}")
+        self.label3.move(75, 250)
         self.label3.adjustSize()
 
-        # self.fig = plt.figure.Figure(figsize=(5,3))
-        # self.plot(costPoints)
+        self.button1 = QPushButton(self)
+        self.button1.setText('Wyświetl funkcję celu')
+        self.button1.move(75, 400)
+        self.button1.adjustSize
+        self.button1.clicked.connect(self.show_canvas)
+
+    def show_canvas(self):
+        if self.w is None:
+            self.w = Canvas(self.costPoints, self.Nmax)
+            self.w.show()
+
+        else:
+            self.w.close()
+            self.w = None  
+        
 
 
 class MyWindow(QMainWindow):
     def __init__(self):
         super(MyWindow, self).__init__()
-        self.setGeometry(300, 100, 500, 500)
+        self.setGeometry(200, 100, 500, 500)
         self.setWindowTitle('ALGORYTM PSO - PARAMETRY')
         self.initUI()
     
@@ -137,25 +162,36 @@ class MyWindow(QMainWindow):
         self.textbox6.setValidator(QIntValidator())
         self.textbox6.editingFinished.connect(self.input6)
 
+        # Ułamek
+        self.label7 = QLabel(self)
+        self.label7.setText('Współczynnik funkcji kary')
+        self.label7.move(200, 375)
+        self.update(self.label7)
+
+        self.textbox7 = QLineEdit(self)
+        self.textbox7.move(75, 370)
+        self.textbox7.setValidator(QDoubleValidator())
+        self.textbox7.editingFinished.connect(self.input7)
+
         # values = [monthCount, chartCount, monthBreak, num, Nmax, initialBudget]
 
         # przycisk uruchom algorytm
         self.b1 = QPushButton(self)
         self.b1.setText('Uruchom algorytm')
-        self.b1.move(75, 400)
+        self.b1.move(75, 425)
         self.update(self.b1)
         self.b1.clicked.connect(self.show_newWindow)
 
         # przycisk wyjscia
         self.b2 = QPushButton(self)
         self.b2.setText('Wyjście')
-        self.b2.move(250, 400)
+        self.b2.move(250, 425)
         self.update(self.b2)
         self.b2.clicked.connect(self.close)
 
     def show_newWindow(self):
         if self.w is None:
-            self.w = SecondWindow(self.monthCount, self.chartCount, self.monthBreak, self.num, self.Nmax, self.initialBudget)
+            self.w = SecondWindow(self.monthCount, self.chartCount, self.monthBreak, self.num, self.Nmax, self.initialBudget, self.fraction)
             self.w.show()
 
         else:
@@ -189,10 +225,9 @@ class MyWindow(QMainWindow):
         # main.initialBudget = self.textbox6.text()
         self.initialBudget =  int(self.textbox6.text())
 
-    #def startButton_clicked(self, val1, val2, val3, val4, val5, val6):
-    #     if type(val1) == int and type(val2) == int and type(monthBreak) == int and\
-    #          type(num) == int and type(Nmax) == int and type(initialBudget) == int:
-
+    def input7(self):
+        # main.fraction = self.textbox7.text()
+        self.fraction =  float(self.textbox7.text().replace(',', '.'))
 
 def window():
     app = QApplication(sys.argv)

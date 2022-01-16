@@ -77,8 +77,8 @@ def create_random_solution(stockCharts):
     return buf
 
 
-def penalty_func(penaltyCount: int, monthCount: int) -> float:
-    return 1 - (0.1*penaltyCount)
+def penalty_func(penaltyCount: int, fraction: int) -> float:
+    return 1 - (fraction*penaltyCount)
 
 
 def check_timeLimit(solution: np.ndarray, number: int) -> bool:
@@ -179,7 +179,7 @@ def spr(solutionMatrix: np.ndarray, initalBudget: float) -> bool:
     return True
 
 
-def cost_function(solutionMatrix: np.ndarray, monthBreak: int, monthCount: int, initalBudget: int) -> float:
+def cost_function(solutionMatrix: np.ndarray, monthBreak: int, monthCount: int, initalBudget: int, fraction: int) -> float:
 
     suma: float = 0
     n, m = np.shape(solutionMatrix)
@@ -189,7 +189,7 @@ def cost_function(solutionMatrix: np.ndarray, monthBreak: int, monthCount: int, 
             suma += solutionMatrix[i][j]
 
     penaltyCount = check_timeLimit2(solutionMatrix, monthBreak)
-    penaltyCoefficient = penalty_func(penaltyCount, monthCount)
+    penaltyCoefficient = penalty_func(penaltyCount, fraction)
 
     if check_if_selling_empty_stock2(solutionMatrix) == False:
         #print('Sprzedaż aktywa, którego nie posiadamy')
